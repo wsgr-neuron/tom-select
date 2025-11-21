@@ -322,11 +322,6 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 				return;
 			}
 
-			// retain focus (see control_input mousedown)
-			if( control_input.value != '' ){
-				return;
-			}
-
 			self.onClick();
 			preventDefault(evt,true);
 		});
