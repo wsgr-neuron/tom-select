@@ -25,13 +25,13 @@ export default function(this:TomSelect) {
 	self.settings.shouldOpen = true; // make sure the input is shown even if there are no options to display in the dropdown
 
 	self.hook('before','setup',()=>{
-		self.focus_node		= self.control;
+                self.focus_node		= self.control;
 
-		addClasses( self.control_input, 'dropdown-input');
+                addClasses( self.control_input, 'dropdown-input');
 
-	 	const div = getDom('<div class="dropdown-input-wrap">');
-		div.append(self.control_input);
-	        self.dropdown.insertBefore(div, self.dropdown.firstChild);
+                const div = getDom('<div class="dropdown-input-wrap">');
+                div.append(self.control_input);
+                self.dropdown.insertBefore(div, self.dropdown.firstChild);
 
 	});
 
