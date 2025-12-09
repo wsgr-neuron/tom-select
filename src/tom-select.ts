@@ -2286,8 +2286,10 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 		applyCSS(self.dropdown,{visibility: 'hidden', display: 'block'});
 		self.positionDropdown();
 		applyCSS(self.dropdown,{visibility: 'visible', display: 'block'});
-		self.focus();
-		self.trigger('dropdown_open', self.dropdown);
+		requestAnimationFrame(() => {
+			self.focus();
+			self.trigger('dropdown_open', self.dropdown);
+		})
 	}
 
 	/**
