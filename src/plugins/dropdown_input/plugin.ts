@@ -31,7 +31,12 @@ export default function(this:TomSelect) {
 
 	 	const div = getDom('<div class="dropdown-input-wrap">');
 		div.append(self.control_input);
-	        self.dropdown.insertBefore(div, self.dropdown.firstChild);
+		self.dropdown.insertBefore(div, self.dropdown.firstChild);
+
+		// set a placeholder in the select control
+		const placeholder = getDom('<input class="items-placeholder" tabindex="-1" />') as HTMLInputElement;
+		placeholder.placeholder = self.settings.placeholder ||'';
+		self.control.append(placeholder);
 
 	});
 
