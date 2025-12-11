@@ -1600,8 +1600,10 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 			}
 
 			if( triggerDropdown && !self.isOpen ){
-				self.open();
-				self.scrollToOption(active_option,'auto');
+				// Scroll to option depends on dropdown size, size of the dropdown is determined when opening - Matt, Stephen, Tue Dec 11 2025
+				self.open().then(() => {
+					self.scrollToOption(active_option,'auto');
+				});
 			}
 			self.setActiveOption(active_option);
 
@@ -2281,7 +2283,8 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 * Shows the autocomplete dropdown containing
 	 * the available options.
 	 */
-	open() {
+        // Async open method to allow for async positionDropdown - Matt, Stephen, Tue Dec 11 2025
+	async open() {
 		var self = this;
 
 		if (self.isLocked || self.isOpen || (self.settings.mode === 'multi' && self.isFull())) return;
@@ -2289,12 +2292,10 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 		setAttr(self.focus_node,{'aria-expanded': 'true'});
 		self.refreshState();
 		applyCSS(self.dropdown,{visibility: 'hidden', display: 'block'});
-		self.positionDropdown();
-		applyCSS(self.dropdown,{visibility: 'visible', display: 'block'});
-		requestAnimationFrame(() => {
-			self.focus();
-			self.trigger('dropdown_open', self.dropdown);
-		})
+		await self.positionDropdown();
+	        applyCSS(self.dropdown,{visibility: 'visible', display: 'block'});
+		self.focus();
+		self.trigger('dropdown_open', self.dropdown);
 	}
 
 	/**
@@ -2330,7 +2331,8 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 * position of the dropdown if dropdownParent = 'body'.
 	 * Otherwise, position is determined by css
 	 */
-	positionDropdown(){
+        // Async position dropdown in order to allow for async determination of the position - Matt, Stephen, Tue Dec 11 2025
+	async positionDropdown(){
 
 		if( this.settings.dropdownParent !== 'body' ){
 			return;
