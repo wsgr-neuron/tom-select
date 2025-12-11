@@ -686,7 +686,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 			// down: open dropdown or move selection down
 			case constants.KEY_DOWN:
-				if (!self.isOpen) {
+				if (!self.isOpen && self.hasOptions) {
 					self.open();
 				} else if (self.activeOption) {
 					let next = self.getAdjacent(self.activeOption, 1);
