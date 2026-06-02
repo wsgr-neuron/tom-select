@@ -256,13 +256,13 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 			'aria-controls':listboxId
 		});
 
-		const control_id	= getId(focus_node,self.inputId + '-ts-control');
+		getId(focus_node,self.inputId + '-ts-control');
 		const query			= "label[for='"+escapeQuery(self.inputId)+"']";
 		const label			= document.querySelector(query);
 		const label_click	= self.focus.bind(self);
 		if( label ){
 			addEvent(label,'click', label_click );
-			setAttr(label,{for:control_id});
+			label.removeAttribute('for');
 			const label_id = getId(label,self.inputId+'-ts-label');
 			setAttr(focus_node,{'aria-labelledby':label_id});
 			setAttr(dropdown_content,{'aria-labelledby':label_id});
