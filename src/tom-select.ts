@@ -98,7 +98,6 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 		instance_i++;
 
-		var dir;
 		var input				= getDom( input_arg ) as TomInput;
 
 		if( input.tomselect ){
@@ -109,17 +108,18 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 		input.tomselect			= this;
 
 
-		// detect rtl environment
-		var computedStyle		= window.getComputedStyle && window.getComputedStyle(input, null);
-		dir						= computedStyle.getPropertyValue('direction');
-
 		// setup default state
 		const settings			= getSettings( input, user_settings );
 		this.settings			= settings;
 		this.input				= input;
 		this.tabIndex			= input.tabIndex || 0;
 		this.is_select_tag		= input.tagName.toLowerCase() === 'select';
-		this.rtl				= /rtl/i.test(dir);
+		// Reading the computed direction forced a style recalculation for each
+		// instance, so a page with many instances stalled at setup. :dir() reads
+		// the element's HTML directionality instead, from its own or an inherited
+		// dir attribute, so a direction set only in CSS is not detected.
+		// - Shaun, Tue Oct 6 2026
+		this.rtl				= input.matches(':dir(rtl)');
 		this.inputId			= getId(input, 'tomselect-'+instance_i);
 		this.isRequired			= input.required;
 
