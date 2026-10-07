@@ -83,6 +83,43 @@ All pre-built files needed to use Tom Select can be found in the "dist" folder v
 - [SCSS](https://www.jsdelivr.com/package/npm/tom-select?path=dist%2Fscss) — Uncompiled theme sources
 
 
+## Web UI Build
+
+web-ui vendors a custom build of this fork as `vendor/javascript/tom-select.js`. It is the minified UMD bundle of Tom Select with one plugin, `no_backspace_delete`. web-ui defines its other plugins itself.
+
+The fork's `updateOriginalInput` selects each existing `<option>` where it is, where upstream Tom Select moves it to the end of the select. Selected options stay in DOM order, so a multiple select submits its values in option order, not in the order they were chosen.
+
+The Rollup configuration builds the custom bundle only when `src/tom-select.custom.ts` exists. The file is ignored by Git, so create it with this content:
+
+```typescript
+import TomSelect from './tom-select.ts';
+
+import no_backspace_delete from './plugins/no_backspace_delete/plugin.ts';
+
+TomSelect.define('no_backspace_delete', no_backspace_delete);
+
+export default TomSelect;
+```
+
+Install the dependencies from the tracked lockfile, build the UMD bundles, and copy the minified custom bundle into web-ui without its source map comment:
+
+```bash
+npm ci
+npm run build:js:umd
+sed '/^\/\/# sourceMappingURL=/d' dist/js/tom-select.custom.min.js > "$NEURON_HOME/web-ui/vendor/javascript/tom-select.js"
+```
+
+The vendored file starts with the `Tom Select v2.4.3` banner and ends with the `var tomSelect=function(t,e){return new TomSelect(t,e)}` footer. web-ui has no source map for it.
+
+Run the test suite in headless Chrome before vendoring a change:
+
+```bash
+TARGET=HeadlessChrome CHROME_BIN="$(which google-chrome)" npx karma start .config/karma.conf.cjs
+```
+
+The tests run against `dist/js/tom-select.complete.js`. `npm run build:js:umd` rebuilds it along with the custom bundle, so run the build before the tests.
+
+
 ## Sponsors
 <p>
 Many thanks to all our sponsors who help make development possible. <a href="https://opencollective.com/tom-select">Become a sponsor</a>.
