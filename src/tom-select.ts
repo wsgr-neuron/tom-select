@@ -2217,15 +2217,14 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 			const selected:HTMLOptionElement[]		= [];
 			const has_selected:number				= self.input.querySelectorAll('option:checked').length;
 
+			// A selected option is selected where it is, not moved to the end of
+			// the select. Moving it took it out of its optgroup and out of the
+			// order the server rendered, so the next morph moved it back.
+			// - Shaun, Tue Oct 6 2026
 			function AddSelected(option_el:HTMLOptionElement|null, value:string, label:string):HTMLOptionElement{
 
 				if( !option_el ){
 					option_el = getDom('<option value="' + escape_html(value) + '">' + escape_html(label) + '</option>') as HTMLOptionElement;
-				}
-
-				// don't move empty option from top of list
-				// fixes bug in firefox https://bugzilla.mozilla.org/show_bug.cgi?id=1725293
-				if( option_el != empty_option ){
 					self.input.append(option_el);
 				}
 
@@ -2261,8 +2260,15 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 					if( selected.includes(option.$option) ){
 						const reuse_opt = self.input.querySelector(`option[value="${addSlashes(value)}"]:not(:checked)`) as HTMLOptionElement;
 						AddSelected(reuse_opt, value, label);
+					}else if( option.$option && self.input.contains(option.$option) && option.$option.value === value ){
+						AddSelected(option.$option, value, label);
 					}else{
-						option.$option	= AddSelected(option.$option, value, label);
+						// A morph can replace an option's element, which leaves $option
+						// outside the select, or give $option another option's value.
+						// Appending it would add a duplicate, and selecting it would select
+						// the wrong option. - Shaun, Tue Oct 6 2026
+						const existing_opt = self.input.querySelector(`option[value="${addSlashes(value)}"]:not(:checked)`) as HTMLOptionElement;
+						option.$option	= AddSelected(existing_opt, value, label);
 					}
 				});
 

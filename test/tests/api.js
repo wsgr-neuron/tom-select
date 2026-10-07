@@ -422,7 +422,7 @@
 
 		describe('addItems()',function(){
 
-			// this test ensures <option> elements are ordered properly in the original <select> element
+			// this test ensures existing <option> elements keep their place in the original <select> element, and new ones are appended in order
 			it_n('should add items in order',function(done){
 
 				var test = setup_test('AB_Multi', {
@@ -436,13 +436,15 @@
 				var option_a		= test.html.querySelector('option[value="a"]');
 				var option_new1		= test.html.querySelector('option[value="new1"]');
 				var option_b		= test.html.querySelector('option[value="b"]');
+				var option_c		= test.html.querySelector('option[value="c"]');
 				var option_new2		= test.html.querySelector('option[value="new2"]');
 
 				assert.equal(selected.length, 4,'should have four selected options');
 				assert.equal(test.instance.items.length, 4,'should have four items');
-				assert.equal(option_a.nextSibling, option_new1 ,'"new1" should be after "a"');
-				assert.equal(option_new1.nextSibling, option_b ,'"b" should be after "new1"');
-				assert.equal(option_b.nextSibling, option_new2 ,'"new2" should be after "b"');
+				assert.equal(option_a.nextSibling, option_b ,'"b" should be after "a"');
+				assert.equal(option_b.nextSibling, option_c ,'"c" should be after "b"');
+				assert.equal(option_c.nextSibling, option_new1 ,'"new1" should be after "c"');
+				assert.equal(option_new1.nextSibling, option_new2 ,'"new2" should be after "new1"');
 				done();
 
 			});
