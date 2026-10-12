@@ -2266,8 +2266,11 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 						// A morph can replace an option's element, which leaves $option
 						// outside the select, or give $option another option's value.
 						// Appending it would add a duplicate, and selecting it would select
-						// the wrong option. - Shaun, Tue Oct 6 2026
-						const existing_opt = self.input.querySelector(`option[value="${addSlashes(value)}"]:not(:checked)`) as HTMLOptionElement;
+						// the wrong option. The option is not excluded for being checked,
+						// because a single select checks its first option again once every
+						// option is unselected. - Shaun, Mon Oct 12 2026
+						const value_opts = self.input.querySelectorAll(`option[value="${addSlashes(value)}"]`) as NodeListOf<HTMLOptionElement>;
+						const existing_opt = Array.from(value_opts).find((option_el) => !selected.includes(option_el)) || null;
 						option.$option	= AddSelected(existing_opt, value, label);
 					}
 				});
