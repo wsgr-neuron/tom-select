@@ -89,6 +89,8 @@ web-ui vendors a custom build of this fork as `vendor/javascript/tom-select.js`.
 
 The fork's `updateOriginalInput` selects each existing `<option>` where it is, where upstream Tom Select moves it to the end of the select. Selected options stay in DOM order, so a multiple select submits its values in option order, not in the order they were chosen.
 
+The fork reads the input's direction through `input.matches(':dir(rtl)')`, where upstream Tom Select reads the computed `direction`. A direction set only in CSS, without a `dir` attribute on the input or an ancestor, is not detected. The `:dir()` pseudo-class needs Chrome 120, Safari 16.4 or Firefox 49. An older browser throws when Tom Select is constructed, and the input is not enhanced. The `browserslist` in `package.json` is upstream's and declares older browsers.
+
 The Rollup configuration builds the custom bundle only when `src/tom-select.custom.ts` exists. The file is ignored by Git, so create it with this content:
 
 ```typescript
@@ -101,7 +103,7 @@ TomSelect.define('no_backspace_delete', no_backspace_delete);
 export default TomSelect;
 ```
 
-Install the dependencies from the tracked lockfile, build the UMD bundles, and copy the minified custom bundle into web-ui without its source map comment:
+Install the dependencies from the tracked lockfile, build the UMD bundles, and copy the minified custom bundle into web-ui without its source map comment. Build with `node_modules` installed in the checkout, not linked from another one. Babel's exclusion of `node_modules` is relative to the working directory, and Rollup resolves a link to its target, so a linked `node_modules` has its dependencies transpiled and the bundle differs.
 
 ```bash
 npm ci
