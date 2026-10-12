@@ -98,7 +98,6 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 		instance_i++;
 
-		var dir;
 		var input				= getDom( input_arg ) as TomInput;
 
 		if( input.tomselect ){
@@ -109,17 +108,16 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 		input.tomselect			= this;
 
 
-		// detect rtl environment
-		var computedStyle		= window.getComputedStyle && window.getComputedStyle(input, null);
-		dir						= computedStyle.getPropertyValue('direction');
-
 		// setup default state
 		const settings			= getSettings( input, user_settings );
 		this.settings			= settings;
 		this.input				= input;
 		this.tabIndex			= input.tabIndex || 0;
 		this.is_select_tag		= input.tagName.toLowerCase() === 'select';
-		this.rtl				= /rtl/i.test(dir);
+		// Web UI supports English only, so direction is not detected. Reading the
+		// computed direction forced a style recalculation for each instance, so a
+		// page with many instances stalled at setup. - Shaun, Mon Oct 12 2026
+		this.rtl				= false;
 		this.inputId			= getId(input, 'tomselect-'+instance_i);
 		this.isRequired			= input.required;
 
@@ -2217,15 +2215,14 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 			const selected:HTMLOptionElement[]		= [];
 			const has_selected:number				= self.input.querySelectorAll('option:checked').length;
 
+			// A selected option is selected where it is, not moved to the end of
+			// the select. Moving it took it out of its optgroup and out of the
+			// order the server rendered, so the next morph moved it back.
+			// - Shaun, Tue Oct 6 2026
 			function AddSelected(option_el:HTMLOptionElement|null, value:string, label:string):HTMLOptionElement{
 
 				if( !option_el ){
 					option_el = getDom('<option value="' + escape_html(value) + '">' + escape_html(label) + '</option>') as HTMLOptionElement;
-				}
-
-				// don't move empty option from top of list
-				// fixes bug in firefox https://bugzilla.mozilla.org/show_bug.cgi?id=1725293
-				if( option_el != empty_option ){
 					self.input.append(option_el);
 				}
 
@@ -2261,8 +2258,18 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 					if( selected.includes(option.$option) ){
 						const reuse_opt = self.input.querySelector(`option[value="${addSlashes(value)}"]:not(:checked)`) as HTMLOptionElement;
 						AddSelected(reuse_opt, value, label);
+					}else if( option.$option && self.input.contains(option.$option) && option.$option.value === value ){
+						AddSelected(option.$option, value, label);
 					}else{
-						option.$option	= AddSelected(option.$option, value, label);
+						// A morph can replace an option's element, which leaves $option
+						// outside the select, or give $option another option's value.
+						// Appending it would add a duplicate, and selecting it would select
+						// the wrong option. The option is not excluded for being checked,
+						// because a single select checks its first option again once every
+						// option is unselected. - Shaun, Mon Oct 12 2026
+						const value_opts = self.input.querySelectorAll(`option[value="${addSlashes(value)}"]`) as NodeListOf<HTMLOptionElement>;
+						const existing_opt = Array.from(value_opts).find((option_el) => !selected.includes(option_el)) || null;
+						option.$option	= AddSelected(existing_opt, value, label);
 					}
 				});
 

@@ -422,7 +422,7 @@
 
 		describe('addItems()',function(){
 
-			// this test ensures <option> elements are ordered properly in the original <select> element
+			// this test ensures existing <option> elements keep their place in the original <select> element, and new ones are appended in order
 			it_n('should add items in order',function(done){
 
 				var test = setup_test('AB_Multi', {
@@ -436,13 +436,15 @@
 				var option_a		= test.html.querySelector('option[value="a"]');
 				var option_new1		= test.html.querySelector('option[value="new1"]');
 				var option_b		= test.html.querySelector('option[value="b"]');
+				var option_c		= test.html.querySelector('option[value="c"]');
 				var option_new2		= test.html.querySelector('option[value="new2"]');
 
 				assert.equal(selected.length, 4,'should have four selected options');
 				assert.equal(test.instance.items.length, 4,'should have four items');
-				assert.equal(option_a.nextSibling, option_new1 ,'"new1" should be after "a"');
-				assert.equal(option_new1.nextSibling, option_b ,'"b" should be after "new1"');
-				assert.equal(option_b.nextSibling, option_new2 ,'"new2" should be after "b"');
+				assert.equal(option_a.nextSibling, option_b ,'"b" should be after "a"');
+				assert.equal(option_b.nextSibling, option_c ,'"c" should be after "b"');
+				assert.equal(option_c.nextSibling, option_new1 ,'"new1" should be after "c"');
+				assert.equal(option_new1.nextSibling, option_new2 ,'"new2" should be after "new1"');
 				done();
 
 			});
@@ -461,6 +463,81 @@
 				assert.equal(selected.length, 4,'should have four selected options');
 				assert.equal(test.instance.items.length, 4,'should have four items');
 				done();
+			});
+
+		});
+
+		describe('updateOriginalInput()',function(){
+
+			it_n('should keep a selected option in its optgroup',function(){
+
+				var test = setup_test('<select multiple><optgroup label="G1"><option value="a">a</option><option value="b">b</option></optgroup><optgroup label="G2"><option value="c">c</option></optgroup></select>');
+
+				test.instance.addItem('c');
+				test.instance.addItem('a');
+
+				var selected_values = Array.from(test.html.selectedOptions, (option_el) => option_el.value);
+
+				assert.equal(test.html.querySelector('option[value="a"]').parentElement.label, 'G1');
+				assert.equal(test.html.querySelector('option[value="c"]').parentElement.label, 'G2');
+				assert.deepEqual(selected_values, ['a','c']);
+			});
+
+			it_n('should select an option whose element was replaced, without a duplicate',function(){
+
+				var test = setup_test('AB_Multi');
+				var option_a = test.html.querySelector('option[value="a"]');
+
+				option_a.replaceWith(option_a.cloneNode(true));
+				test.instance.addItem('a');
+
+				var options_a = test.html.querySelectorAll('option[value="a"]');
+
+				assert.equal(options_a.length, 1);
+				assert.equal(options_a[0].selected, true);
+				assert.equal(test.instance.options.a.$option, options_a[0]);
+			});
+
+			it_n('should select the option with the item\'s value when $option has another value',function(){
+
+				var test = setup_test('AB_Multi');
+				var option_a = test.html.querySelector('option[value="a"]');
+				var option_b = test.html.querySelector('option[value="b"]');
+
+				option_a.value = 'b';
+				option_b.value = 'a';
+				test.instance.addItem('a');
+
+				var selected_values = Array.from(test.html.selectedOptions, (option_el) => option_el.value);
+
+				assert.deepEqual(selected_values, ['a']);
+				assert.equal(test.html.options.length, 3);
+			});
+
+			it_n('should keep the empty option first when cleared',function(){
+
+				var test = setup_test('<select><option value=""></option><option value="a">a</option><option value="b">b</option></select>', {allowEmptyOption:true});
+
+				test.instance.addItem('b');
+				test.instance.clear();
+
+				var values = Array.from(test.html.options, (option_el) => option_el.value);
+
+				assert.deepEqual(values, ['','a','b']);
+				assert.equal(test.html.value, '');
+			});
+
+			it_n('should select a replaced first option of a single select without a duplicate',function(){
+
+				var test = setup_test('AB_Single');
+				var option_a = test.html.querySelector('option[value="a"]');
+
+				test.instance.addItem('b');
+				option_a.replaceWith(option_a.cloneNode(true));
+				test.instance.addItem('a');
+
+				assert.equal(test.html.querySelectorAll('option[value="a"]').length, 1);
+				assert.equal(test.html.value, 'a');
 			});
 
 		});

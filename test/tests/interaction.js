@@ -375,7 +375,7 @@
 				assert.equal(test.select.value,'b');
 			});
 
-			it_n('should order selected options',function(done){
+			it_n('should select options in place',function(done){
 				var test = setup_test('AB_Multi',{create:true});
 
 				click(test.instance.control, function() {
@@ -390,9 +390,11 @@
 							syn.type('[enter]',test.instance.control_input, function(){
 								click( test.instance.dropdown.querySelector('[data-value="a"]'), function() {
 									var selected = test.html.querySelectorAll('option:checked');
+									var option_c = test.html.querySelector('option[value="c"]');
 									assert.equal(selected.length, 3,'should have three selected options');
-									assert.equal(option_b.nextSibling.value, 'new' ,'"new" should be after "b"');
-									assert.equal(option_b.nextSibling.nextSibling, option_a ,'"a" should be after "b"');
+									assert.equal(option_a.nextSibling, option_b ,'"b" should be after "a"');
+									assert.equal(option_b.nextSibling, option_c ,'"c" should be after "b"');
+									assert.equal(option_c.nextSibling.value, 'new' ,'"new" should be after "c"');
 									done();
 								});
 							});
