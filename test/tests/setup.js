@@ -499,14 +499,14 @@
 				expect(test.instance.rtl).to.be.equal(false);
 			});
 
-			it_n('should detect rtl', function() {
+			it_n('should not detect rtl', function() {
 				var test = setup_test('<select dir="rtl">', {});
-				expect(test.instance.rtl).to.be.equal(true);
+				expect(test.instance.rtl).to.be.equal(false);
 			});
 
-			it_n('should detect parent rtl', function() {
+			it_n('should not detect parent rtl', function() {
 				var test = setup_test('<div dir="rtl"><select class="setup-here"></select></div>', {});
-				expect(test.instance.rtl).to.be.equal(true);
+				expect(test.instance.rtl).to.be.equal(false);
 			});
 
 		});

@@ -114,13 +114,10 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 		this.input				= input;
 		this.tabIndex			= input.tabIndex || 0;
 		this.is_select_tag		= input.tagName.toLowerCase() === 'select';
-		// Reading the computed direction forced a style recalculation for each
-		// instance, so a page with many instances stalled at setup. :dir() reads
-		// the element's HTML directionality instead, from its own or an inherited
-		// dir attribute, so a direction set only in CSS is not detected. A
-		// browser without :dir(), before Chrome 120 and Safari 16.4, throws here,
-		// and the input is not enhanced. - Shaun, Mon Oct 12 2026
-		this.rtl				= input.matches(':dir(rtl)');
+		// Web UI supports English only, so direction is not detected. Reading the
+		// computed direction forced a style recalculation for each instance, so a
+		// page with many instances stalled at setup. - Shaun, Mon Oct 12 2026
+		this.rtl				= false;
 		this.inputId			= getId(input, 'tomselect-'+instance_i);
 		this.isRequired			= input.required;
 
