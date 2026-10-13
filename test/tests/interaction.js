@@ -1045,6 +1045,38 @@
 		});
 
 		describe('blurring the input', function() {
+			it_n('should close dropdown, commit, and trigger "blur" while the window lacks focus', async function() {
+				var test = setup_test('AB_Multi', {});
+				var blurred = false;
+				var changes = 0;
+				test.instance.on('blur', function() { blurred = true; });
+				test.select.addEventListener('change', function() { changes++; });
+
+				await test.instance.open();
+				await new Promise(function(resolve) { window.setTimeout(resolve, 0); });
+
+				expect(test.instance.isFocused).to.be.equal(true);
+				expect(test.instance.isOpen).to.be.equal(true);
+
+				test.instance.addItem('a');
+
+				expect(changes).to.be.equal(0);
+
+				var hasFocus = document.hasFocus;
+				document.hasFocus = function() { return false; };
+
+				try {
+					test.instance.onBlur();
+				} finally {
+					document.hasFocus = hasFocus;
+				}
+
+				expect(test.instance.isFocused).to.be.equal(false);
+				expect(test.instance.isOpen).to.be.equal(false);
+				expect(changes).to.be.equal(1);
+				expect(blurred).to.be.equal(true);
+			});
+
 			it_n('should close dropdown when createOnBlur is true', function(done) {
 
 				var test = setup_test('AB_Multi',{

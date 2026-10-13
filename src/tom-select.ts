@@ -880,9 +880,6 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 *
 	 */
 	onBlur(e?:FocusEvent):void {
-
-		if( document.hasFocus() === false ) return;
-
 		var self = this;
 		if (!self.isFocused) return;
 		self.isFocused = false;

@@ -16,6 +16,10 @@ When a morph has replaced an option's element, the option is found in the select
 
 `onChange` dispatches `input` on the input after every change to the selection, and dispatches `change` only when the selection is committed, much as a text input dispatches `change` when it loses focus. A change made while the dropdown is closed is committed immediately. Changes made while the dropdown is open are committed when it closes, and `change` is dispatched only if the selected values differ from those the dropdown opened with. Upstream Tom Select dispatches `input` and `change` together after every change, so a multiple select dispatches `change` for each option selected in the open dropdown. Tom Select's own `change` event is still triggered after every change. For an `<input>` rather than a `<select>`, the comparison uses the input's value, which lists the items in the order they were selected, so deselecting and reselecting an item dispatches `change`.
 
+### Blur Is Handled While the Window Lacks Focus
+
+`onBlur` handles a blur while the document lacks focus, so switching to another window closes the dropdown and triggers `blur`, as it does for any other blur. Upstream Tom Select ignores that blur to keep the dropdown open when the user clicks outside the window, which leaves the instance focused and its dropdown open until the user returns.
+
 ### Direction Is Not Detected
 
 Every instance is left-to-right, even inside a `dir="rtl"` element, because web-ui supports English only. The wrapper never has the `rtl` class, and the left and right arrow keys are never reversed. Upstream Tom Select reads the computed `direction`, which forces a style recalculation for each instance.
