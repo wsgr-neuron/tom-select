@@ -89,6 +89,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	public options					: TomOptions = {};
 	public userOptions				: {[key:string]:boolean} = {};
 	public items					: string[] = [];
+	private committedValues			: string[] = [];
 
 	private refreshTimeout			: null|number = null;
 
@@ -427,6 +428,18 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 		self.on('change', this.onChange);
 
+		// In single mode, addItem closes the dropdown before it writes the
+		// selection to the input, and dropdown_close is triggered only after the
+		// write. Committing from close() would read the previous selection.
+		// Settings callbacks and plugin listeners for dropdown_close are bound
+		// before this one, so a listener that changes the selection changes what
+		// is committed. - Shaun, Tue Oct 13 2026
+		self.on('dropdown_close', () => {
+			if( !self.valuesCommitted() ){
+				self.commitChange();
+			}
+		});
+
 		addClasses(input,'tomselected','ts-hidden-accessible');
 		self.trigger('initialize');
 
@@ -582,7 +595,32 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 */
 	onChange() {
 		triggerEvent(this.input, 'input');
+
+		// The change event is dispatched when the user commits a selection, as a
+		// text input dispatches it on blur. Selections made while the dropdown is
+		// open are committed together when it closes. - Shaun, Tue Oct 13 2026
+		if( !this.isOpen ){
+			this.commitChange();
+		}
+	}
+
+	commitChange() {
+		this.committedValues = this.selectedValues();
 		triggerEvent(this.input, 'change');
+	}
+
+	valuesCommitted():boolean {
+		const values = this.selectedValues();
+
+		return values.length === this.committedValues.length && values.every((value, i) => value === this.committedValues[i]);
+	}
+
+	selectedValues():string[] {
+		if( this.is_select_tag ){
+			return Array.from((this.input as HTMLSelectElement).selectedOptions, (option) => option.value);
+		}
+
+		return [this.input.value];
 	}
 
 	/**
@@ -842,9 +880,6 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 *
 	 */
 	onBlur(e?:FocusEvent):void {
-
-		if( document.hasFocus() === false ) return;
-
 		var self = this;
 		if (!self.isFocused) return;
 		self.isFocused = false;
@@ -2296,6 +2331,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 		if (self.isLocked || self.isOpen || (self.settings.mode === 'multi' && self.isFull())) return;
 		self.isOpen = true;
+		self.committedValues = self.selectedValues();
 		setAttr(self.focus_node,{'aria-expanded': 'true'});
 		self.refreshState();
 		applyCSS(self.dropdown,{visibility: 'hidden', display: 'block'});
